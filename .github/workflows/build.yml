@@ -1,0 +1,49 @@
+name: Build nsJSON
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+env:
+  SOLUTION_FILE_PATH: Contrib/nsJSON/nsJSON.vcxproj
+  MSBUILD_TOOLSET: /p:PlatformToolset=v140 /p:WindowsTargetPlatformVersion=10.0.16299.0
+
+jobs:
+  build:
+    runs-on: windows-2019
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Developer Command Prompt (x64)
+      uses: ilammy/msvc-dev-cmd@v1.13.0
+      with:
+        arch: x64
+        toolset: 14.0
+
+    - name: Build nsJSON (amd64-unicode)
+      run: |
+        msbuild ${{env.SOLUTION_FILE_PATH}} /p:Configuration="Release Unicode" /p:Platform=x64 ${{env.MSBUILD_TOOLSET}}
+
+    - name: Setup Developer Command Prompt (Win32)
+      uses: ilammy/msvc-dev-cmd@v1.13.0
+      with:
+        arch: x86
+        toolset: 14.0
+
+    - name: Build nsJSON (x86-ansi)
+      run: |
+        msbuild ${{env.SOLUTION_FILE_PATH}} /p:Configuration="Release" /p:Platform=Win32 ${{env.MSBUILD_TOOLSET}}
+
+    - name: Build nsJSON (x86-unicode)
+      run: |
+        msbuild ${{env.SOLUTION_FILE_PATH}} /p:Configuration="Release Unicode" /p:Platform=Win32 ${{env.MSBUILD_TOOLSET}}
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: nsJSON-build
+        path: Plugins
